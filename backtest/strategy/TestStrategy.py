@@ -1,7 +1,8 @@
 import backtrader as bt
+import random
 
 
-# Create a Stratey
+# Create a Strategy
 class TestStrategy(bt.Strategy):
 
     params = (
@@ -16,6 +17,7 @@ class TestStrategy(bt.Strategy):
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
         self.dataclose = self.datas[0].close
+        self.dataclose1 = self.datas[1].close
 
         # To keep track of pending orders and buy price/commission
         self.order = None
@@ -23,18 +25,8 @@ class TestStrategy(bt.Strategy):
         self.buycomm = None
 
         # Add a MovingAverageSimple indicator
-        self.sma = bt.indicators.SimpleMovingAverage(
-            self.datas[0], period=self.params.maperiod)
-
-        # Indicators for the plotting show
-        bt.indicators.ExponentialMovingAverage(self.datas[0], period=25)
-        bt.indicators.WeightedMovingAverage(self.datas[0], period=25,
-                                            subplot=True)
-        bt.indicators.StochasticSlow(self.datas[0])
-        bt.indicators.MACDHisto(self.datas[0])
-        rsi = bt.indicators.RSI(self.datas[0])
-        bt.indicators.SmoothedMovingAverage(rsi, period=10)
-        bt.indicators.ATR(self.datas[0], plot=False)
+        self.sma = bt.indicators.SimpleMovingAverage(self.datas[0], period=self.params.maperiod)
+        self.sma1 = bt.indicators.SimpleMovingAverage(self.datas[1], period=self.params.maperiod)
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -75,30 +67,42 @@ class TestStrategy(bt.Strategy):
                  (trade.pnl, trade.pnlcomm))
 
     def next(self):
-        # Simply log the closing price of the series from the reference
-        self.log('Close, %.2f' % self.dataclose[0])
+        # Get trade signals for each stock
+        dummy_signal_holder = []
+        for data in enumerate(self.datas):
+            dummy_signal_holder.append(self.get_trade_signals(data))
 
-        # Check if an order is pending ... if yes, we cannot send a 2nd one
-        if self.order:
-            return
+        # # Run risk model
+        # refined_orders = self.run_risk_model(dummy_signal_holder)
+        #
+        # # Buy and sell in proportions determined by the risk model
+        # self.enter_orders(refined_orders)
 
-        # Check if we are in the market
-        if not self.position:
+    def get_trade_signals(self, data):
+        """
 
-            # Not yet ... we MIGHT BUY if ...
-            if self.dataclose[0] > self.sma[0]:
 
-                # BUY, BUY, BUY!!! (with all possible default parameters)
-                self.log('BUY CREATE, %.2f' % self.dataclose[0])
+        :return:
+        """
+        ind = data[0]
+        data = data[1]
 
-                # Keep track of the created order to avoid a 2nd order
-                self.order = self.buy()
+        # TODO: move order submissions to later in the pipeline
+        if self.sma < self.data.close:
+            self.log('buy {}'.format(self.getdatanames()[ind]))
+            submitted_order = self.buy(data=data, size=10)
+            # print("current position: {}".format(self.getposition(data)))
 
-        else:
+        elif self.sma > self.data.close:
+            self.log('sell {}'.format(self.getdatanames()[ind]))
+            submitted_order = self.sell(data=data, size=10)
+            # print("current position: {}".format(self.getposition(data)))
 
-            if self.dataclose[0] < self.sma[0]:
-                # SELL, SELL, SELL!!! (with all possible default parameters)
-                self.log('SELL CREATE, %.2f' % self.dataclose[0])
 
-                # Keep track of the created order to avoid a 2nd order
-                self.order = self.sell()
+    def enter_orders(self, orders):
+        """
+
+        :param orders:
+        :return:
+        """
+        return orders
