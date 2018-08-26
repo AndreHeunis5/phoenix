@@ -1,33 +1,22 @@
 # Entry point for running a backtest
 
-import datetime
 import backtrader as bt
 
 from backtest.strategy.TestStrategy import TestStrategy
 from backtest.outputs.output_lib import show_outputs
+from data.Repository import Repository
 
 if __name__ == '__main__':
-    # Create a cerebro entity
+
     cerebro = bt.Cerebro()
+    repo = Repository(dir='/Users/andreheunis/python_projects/phoenix/data/repo/')
 
-    # Create a Data Feed
-    data0 = bt.feeds.YahooFinanceCSVData(
-        dataname='/Users/andreheunis/python_projects/phoenix/data/repo/orcl-1995-2014.txt',
-        fromdate=datetime.datetime(2000, 1, 1),
-        todate=datetime.datetime(2000, 3, 31),
-        reverse=False)
-    cerebro.adddata(data0, name='data0')
-
-    data1 = bt.feeds.YahooFinanceCSVData(
-        dataname='/Users/andreheunis/python_projects/phoenix/data/repo/yhoo-1996-2014.txt',
-        fromdate=datetime.datetime(2000, 1, 1),
-        todate=datetime.datetime(2000, 3, 31),
-        reverse=False)
-    cerebro.adddata(data1, name='data1')
+    # Add data to the cerebro instance
+    repo.get_backtest_data(cerebro=cerebro)
 
     # Initialise the backtest
     cerebro.addstrategy(TestStrategy)
-    cerebro.broker.setcash(10000.0)
+    cerebro.broker.setcash(100000.0)
     cerebro.addsizer(bt.sizers.FixedSize, stake=10)
     cerebro.broker.setcommission(commission=0.0)
 
