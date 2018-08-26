@@ -1,5 +1,6 @@
 # Dummy strategy to use while building the repo
 
+import logging
 import backtrader as bt
 
 
@@ -12,7 +13,7 @@ class TestStrategy(bt.Strategy):
     def log(self, txt, dt=None):
         ''' Logging function fot this strategy'''
         dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
+        logging.info('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
