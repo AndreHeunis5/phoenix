@@ -1,38 +1,10 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+# Entry point for running a backtest
 
 import datetime
 import backtrader as bt
-import pyfolio as pf
-import pandas as pd
 
 from backtest.strategy.TestStrategy import TestStrategy
-
-
-def run_pyfolio_stuff(results):
-
-    strat = results[0]
-    pyfoliozer = strat.analyzers.getbyname('pyfolio')
-
-    returns, positions, transactions, gross_lev = pyfoliozer.get_pf_items()
-
-    print('-- RETURNS')
-    print(returns)
-    print('-- POSITIONS')
-    print(positions)
-    print('-- TRANSACTIONS')
-    print(transactions)
-    print('-- GROSS LEVERAGE')
-    print(gross_lev)
-
-    pf.create_full_tear_sheet(
-        returns,
-        positions=positions,
-        transactions=transactions,
-        live_start_date='2000-01-01',
-        round_trips=True,
-        benchmark_rets=pd.Series(1.0, index=returns.index), turnover_denom='portfolio_value')
-
+from backtest.outputs.output_lib import show_outputs
 
 if __name__ == '__main__':
     # Create a cerebro entity
@@ -70,7 +42,6 @@ if __name__ == '__main__':
     # Print out the final result
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
-    # run_pyfolio_stuff(results)
+    # Show backtest results
+    show_outputs(cerebro, results, show_backtrader=True, show_pyfolio=False)
 
-    # Plot the result
-    cerebro.plot()

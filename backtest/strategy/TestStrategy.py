@@ -1,8 +1,8 @@
+# Dummy strategy to use while building the repo
+
 import backtrader as bt
-import random
 
 
-# Create a Strategy
 class TestStrategy(bt.Strategy):
 
     params = (
@@ -97,7 +97,6 @@ class TestStrategy(bt.Strategy):
             self.log('sell {}'.format(self.getdatanames()[ind]))
             submitted_order = self.sell(data=data, size=10)
             # print("current position: {}".format(self.getposition(data)))
-
 
     def enter_orders(self, orders):
         """
