@@ -3,15 +3,22 @@
 import logging
 import backtrader as bt
 
+from backtest.strategy.GenericStrategy import GenericStrategy
 
-class TestStrategy(bt.Strategy):
+
+class TestStrategy(GenericStrategy):
 
     params = (
         ('maperiod', 15),
     )
 
     def log(self, txt, dt=None):
-        ''' Logging function fot this strategy'''
+        """
+        Logging function for this strategy
+
+        :param txt:     the text to include in the log entry
+        :param dt:      datetime object associated with the log message
+        """
         dt = dt or self.datas[0].datetime.date(0)
         logging.info('%s, %s' % (dt.isoformat(), txt))
 
@@ -71,7 +78,7 @@ class TestStrategy(bt.Strategy):
         # Get trade signals for each stock
         dummy_signal_holder = []
         for data in enumerate(self.datas):
-            dummy_signal_holder.append(self.get_trade_signals(data))
+            dummy_signal_holder.append(self.get_trade_signal(data))
 
         # # Run risk model
         # refined_orders = self.run_risk_model(dummy_signal_holder)
@@ -79,16 +86,17 @@ class TestStrategy(bt.Strategy):
         # # Buy and sell in proportions determined by the risk model
         # self.enter_orders(refined_orders)
 
-    def get_trade_signals(self, data):
+    def get_trade_signal(self, data):
         """
+        Find the trading signal strength for a single stock
 
-
-        :return:
+        :param data:    tuple with structure (data_index <int>, data <data type>)
+        :return:        TODO: should return trading signal strength for input to risk model
         """
         ind = data[0]
         data = data[1]
 
-        # TODO: move order submissions to later in the pipeline
+        # TODO: move order submissions to later in the pipeline (enter_orders)
         if self.sma < self.data.close:
             self.log('buy {}'.format(self.getdatanames()[ind]))
             submitted_order = self.buy(data=data, size=10)
@@ -103,6 +111,5 @@ class TestStrategy(bt.Strategy):
         """
 
         :param orders:
-        :return:
         """
         return orders

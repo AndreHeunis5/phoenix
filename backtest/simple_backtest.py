@@ -34,5 +34,5 @@ if __name__ == '__main__':
     logging.info('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
     # Show backtest results
-    show_outputs(cerebro, results, show_backtrader=False, show_pyfolio=False)
+    show_outputs(cerebro, results, show_backtrader=True, show_pyfolio=False)
 
