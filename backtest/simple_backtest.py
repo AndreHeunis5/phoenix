@@ -1,38 +1,66 @@
 # Entry point for running a backtest
 
-import backtrader as bt
-import logging
 
-from backtest.strategy.TestStrategy import TestStrategy
-from backtest.outputs.output_lib import show_outputs, init_logging
-from data.Repository import Repository
+import logging
+import pandas as pd
+import numpy as np
+
+from backtest.outputs.output_lib import init_logging
+from backtest.Phoenix import Phoenix
+from backtest.AsxDateRange import AsxDateRange
+from backtest.DateRange import DateRange
+from broker.Broker import Broker
+from broker.TCostModel import TCostModel
+from strategy.MACStrategy import MACStrategy
+
 
 if __name__ == '__main__':
 
-    init_logging(should_output_to_console=True, should_output_to_file=True)
-    cerebro = bt.Cerebro()
-    repo = Repository(dir='/Users/andreheunis/python_projects/phoenix/data/repo/')
+    t_cost_model = TCostModel()
+    strategy = MACStrategy(short_ema_period=5, long_ema_period=15)
 
-    # Add data to the cerebro instance
-    repo.get_backtest_data(cerebro=cerebro)
+    broker = Broker(starting_cash=10000.0, t_cost_model=t_cost_model)
+    px = Phoenix(strategy=strategy, broker=broker, num_stocks=3)
 
-    # Initialise the backtest
-    cerebro.addstrategy(TestStrategy)
-    cerebro.broker.setcash(100000.0)
-    cerebro.addsizer(bt.sizers.FixedSize, stake=10)
-    cerebro.broker.setcommission(commission=0.0)
+    # TODO fix this up once all the data assets have a proper ETL
+    # Get a pandas dataframe
+    datapath = 'data/dataset_20181201.csv'
 
-    cerebro.addanalyzer(bt.analyzers.PyFolio, _name='pyfolio')
+    # Simulate the header row isn't there if noheaders requested
+    skiprows = 0
+    header = 0
 
-    # Print out the starting conditions
-    logging.info('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    dataframe = pd.read_csv(datapath,
+                            skiprows=skiprows,
+                            header=header,
+                            parse_dates=True,
+                            index_col=0)  # .fillna(0)
 
-    # Run over everything
-    results = cerebro.run()
+    stocks = dataframe.columns
 
-    # Print out the final result
-    logging.info('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    for i, s in enumerate(stocks):
+        if i == 0:
+            continue
+        elif i > 3:
+            break
 
-    # Show backtest results
-    show_outputs(cerebro, results, show_backtrader=True, show_pyfolio=False)
+        stock_history = dataframe[s].to_frame()
+        stock_history.columns = ['close']
+        stock_history = stock_history.dropna()  # drop dates where there is no data
+        stock_history['open'] = stock_history['close'].shift(1)  # add open prices for buying
+
+        # TODO: remove
+        stock_history = stock_history.dropna()
+        px.add_stock(stock_data=stock_history, stock_name=s)
+
+    # TODO: construct this from file
+    # add the date ranges
+    px.add_asx200_def(
+        date_ranges=[
+            AsxDateRange(
+                date_range=DateRange(start_date=np.datetime64('2001-09-28'), end_date=np.datetime64('2016-01-31')),
+                stocks=['6382285 Equity SEDOL1', '6117960 Equity SEDOL1', '6079695 Equity SEDOL1']
+            )])
+
+    px.run_backtest()
 

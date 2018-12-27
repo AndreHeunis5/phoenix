@@ -30,23 +30,6 @@ def init_logging(should_output_to_console, should_output_to_file):
         logging.getLogger('').addHandler(console)
 
 
-def show_outputs(cerebro, results, show_backtrader, show_pyfolio):
-    """
-    Visualise / print the results of a backtest using the methods provided by the specified packages.
-
-    :param cerebro:             backtrader.Cerebro instance related to the backtest we want to visualise
-    :param results:             A list of classes related to strategies used in the backtest
-    :param show_backtrader:     Boolean flag indicating whether to show results using backtrader
-    :param show_pyfolio:        Boolean flag indicating whether to show results using pyfolio
-    """
-
-    if show_backtrader:
-        cerebro.plot()
-
-    if show_pyfolio:
-        run_pyfolio_stuff(results)
-
-
 def run_pyfolio_stuff(results):
     """
     DOESNT WORK YET!!!
