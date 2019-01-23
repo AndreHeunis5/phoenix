@@ -13,17 +13,21 @@ class MACStrategy(GenericStrategy):
     Toy moving average crossover strategy.
     """
 
-    def __init__(self, short_ema_period, long_ema_period):
+    def __init__(self, short_ema_period, long_ema_period, logger):
         """
         :param short_ema_period:    EMA period in days
         :param long_ema_period:     EMA period in days
         """
+        self.name = 'MACStrategy'
+
         # Calculate the alphas required for the specified time ranges
         self.alpha_short = self.__get_ema_alpha(short_ema_period)
         self.alpha_long = self.__get_ema_alpha(long_ema_period)
 
         self.stock_indicators = {}          # short and long ema for each stock
         self.stock_trading_signals = {}     # trading signal for each stock (-1 for sell, +1 for buy)
+
+        self.logger = logger
 
     def __get_ema_alpha(self, period):
         """
@@ -119,21 +123,11 @@ class MACStrategy(GenericStrategy):
 
             if signal[-1] > 0:
                 order_type = OrderType.buy
-                print("STRATEGY: Generated buy order")
+                self.logger.info("STRATEGY: Generated buy order")
             elif signal[-1] < 0:
                 order_type = OrderType.sell
-                print("STRATEGY: Generated sell order")
+                self.logger.info("STRATEGY: Generated sell order")
 
             orders.append(Order(stock_name=s, type=order_type, num_of_shares=20))
 
         return orders
-
-    def log(self, txt, dt=None):
-        """
-        Logging function for this strategy
-
-        :param txt:     the text to include in the log entry
-        :param dt:      datetime object associated with the log message
-        """
-        dt = dt or self.datas[0].datetime.date(0)
-        logging.info('%s, %s' % (dt.isoformat(), txt))

@@ -3,7 +3,7 @@ class Phoenix:
     """
     Sets up and runs backtests
     """
-    def __init__(self, strategy, broker, num_stocks):
+    def __init__(self, strategy, broker, num_stocks, logger):
         """
 
         :param strategy:    The trading strategy
@@ -12,6 +12,7 @@ class Phoenix:
         self.strategy = strategy
         self.broker = broker
         self.num_stocks = num_stocks
+        self.logger = logger
 
         self.stocks_data = {}               # Dict for holding the price data for each stock in the trading universe
         self.asx200_dateranges = []         # List of date ranges and the corresponding asx200 constituents
@@ -52,7 +53,6 @@ class Phoenix:
             dr_stock_names = dr.stocks
 
             # Select relevant stocks
-            print(self.stocks_data.keys())
             dr_stocks_data = {sname: self.stocks_data[sname] for sname in dr_stock_names}
 
             # Clear signals from the previous date range and warm up any trading signals that require it
@@ -60,8 +60,8 @@ class Phoenix:
 
             # Loop through dates in date range
             for td in trading_dates:
-                print('-' * 20)
-                print(td)
+                self.logger.info('-' * 20)
+                self.logger.info(td)
 
                 # broker executes buy and sell orders on open prices
                 # TODO: be able to execute on close or open

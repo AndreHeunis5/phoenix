@@ -9,4 +9,4 @@ class Position(NamedTuple):
     num_of_shares:
     """
     num_of_shares: int
-    # TODO: value when position was opened?
+    buy_price: float

@@ -16,11 +16,11 @@ from strategy.MACStrategy import MACStrategy
 
 if __name__ == '__main__':
 
+    logger = init_logging(should_output_to_console=True, should_output_to_file=True)
     t_cost_model = TCostModel()
-    strategy = MACStrategy(short_ema_period=5, long_ema_period=15)
-
-    broker = Broker(starting_cash=10000.0, t_cost_model=t_cost_model)
-    px = Phoenix(strategy=strategy, broker=broker, num_stocks=3)
+    strategy = MACStrategy(short_ema_period=5, long_ema_period=15, logger=logger)
+    broker = Broker(starting_cash=10000.0, t_cost_model=t_cost_model, logger=logger)
+    px = Phoenix(strategy=strategy, broker=broker, num_stocks=3, logger=logger)
 
     # TODO fix this up once all the data assets have a proper ETL
     # Get a pandas dataframe
@@ -34,7 +34,7 @@ if __name__ == '__main__':
                             skiprows=skiprows,
                             header=header,
                             parse_dates=True,
-                            index_col=0)  # .fillna(0)
+                            index_col=0)
 
     stocks = dataframe.columns
 
@@ -61,6 +61,10 @@ if __name__ == '__main__':
                 date_range=DateRange(start_date=np.datetime64('2001-09-28'), end_date=np.datetime64('2016-01-31')),
                 stocks=['6382285 Equity SEDOL1', '6117960 Equity SEDOL1', '6079695 Equity SEDOL1']
             )])
+
+    logger.info('*** Backtester initialised ***')
+    logger.info('Strategy: {}'.format(px.strategy.name))
+    logger.info('Starting Cash: {}'.format(px.broker.cash))
 
     px.run_backtest()
 
